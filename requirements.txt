@@ -1,0 +1,7 @@
+streamlit==1.26.1
+numpy==1.26.2
+pandas==2.3.3
+scikit-learn==1.7.1
+joblib==1.5.2
+rdkit-pypi==2023.3.1b1
+matplotlib==3.7.2

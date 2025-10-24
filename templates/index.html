@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Alpha-Glucosidase QSAR Predictor</title>
+<style>
+body { font-family: Arial; background:#f5f5f5; text-align:center; margin:0; padding:0;}
+header { background:#004080; padding:20px; color:white;}
+header img { height:60px; vertical-align:middle;}
+main { padding:30px;}
+input[type="text"] { width:60%; padding:10px; font-size:16px;}
+input[type="submit"] { padding:10px 20px; font-size:16px; background:#004080; color:white; border:none; cursor:pointer;}
+input[type="submit"]:hover { background:#0066cc;}
+.prediction { margin-top:20px; font-size:18px; font-weight:bold;}
+#mol-image img { margin-top:20px; max-width:300px; border:1px solid #ccc; border-radius:5px;}
+#ad-bar-container { margin-top:20px; width:60%; height:25px; background:#ddd; border-radius:12px; overflow:hidden; margin-left:auto; margin-right:auto;}
+#ad-bar { height:100%; width:0%; background:green; text-align:center; line-height:25px; color:white; font-weight:bold;}
+footer { margin-top:40px; padding:10px; font-size:12px; color:#777;}
+</style>
+</head>
+<body>
+
+<header>
+<img src="{{ url_for('static', filename='logo_ud.png') }}" alt="Logo">
+<h1>Alpha-Glucosidase QSAR Predictor</h1>
+</header>
+
+<main>
+<form id="predict-form">
+<label for="smiles">Enter SMILES:</label><br><br>
+<input type="text" id="smiles" name="smiles" placeholder="C1=CC=CC=C1">
+<input type="submit" value="Predict">
+</form>
+
+<div id="result" class="prediction"></div>
+<div id="ad-bar-container"><div id="ad-bar"></div></div>
+<div id="mol-image"></div>
+
+<h3>QSAR Workflow Diagram</h3>
+<img src="{{ workflow_url }}" alt="QSAR Workflow Diagram" style="max-width:90%; border:1px solid #ccc; border-radius:5px; margin-top:20px;">
+
+</main>
+
+<footer>Developed by L-2900 | 2025</footer>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const form = document.getElementById("predict-form");
+    const resultDiv = document.getElementById("result");
+    const molDiv = document.getElementById("mol-image");
+    const adBar = document.getElementById("ad-bar");
+
+    form.addEventListener("submit", async function(e) {
+        e.preventDefault(); // stop normal form submission
+
+        const smiles = document.getElementById("smiles").value.trim();
+        resultDiv.textContent = "";
+        molDiv.innerHTML = "";
+        adBar.style.width = "0%";
+        adBar.textContent = "";
+
+        if (!smiles) {
+            resultDiv.textContent = "Please enter a valid SMILES string.";
+            return;
+        }
+
+        try {
+            const response = await fetch("/predict", {
+                method: "POST",
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                body: new URLSearchParams({ smiles })
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                resultDiv.innerHTML = `
+                    Predicted pIC50: <strong>${data.predicted_pIC50}</strong><br>
+                    ${data.message}<br>
+                    Distance to centroid: ${data.distance}
+                `;
+
+                if (data.molecule_image) {
+                    molDiv.innerHTML = `<img src="data:image/png;base64,${data.molecule_image}" alt="Molecule Image">`;
+                }
+
+                const dist = parseFloat(data.distance);
+                const threshold = parseFloat(data.threshold);
+                let percent = Math.min((threshold / dist) * 100, 100);
+
+                if (dist <= threshold) { adBar.style.backgroundColor = "green"; }
+                else if (dist <= threshold * 1.2) { adBar.style.backgroundColor = "orange"; }
+                else { adBar.style.backgroundColor = "red"; percent = 100; }
+
+                adBar.style.width = percent + "%";
+                adBar.textContent = Math.round(percent) + "% AD Confidence";
+            } else {
+                resultDiv.textContent = data.error || "Prediction failed.";
+            }
+        } catch (err) {
+            resultDiv.textContent = "Server error: " + err.message;
+        }
+    });
+});
+</script>
+
+</body>
+</html>
