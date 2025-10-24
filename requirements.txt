@@ -1,5 +1,6 @@
+# Python 3.10 compatible
 streamlit==1.26.1
-numpy==1.26.2
+numpy==1.24.4        # Matches older saved models
 pandas==2.3.3
 scikit-learn==1.7.1
 joblib==1.5.2
