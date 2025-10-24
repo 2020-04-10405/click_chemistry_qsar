@@ -1,18 +1,7 @@
-# Core app
 streamlit==1.26.1
-
-# Data processing
 numpy==1.26.2
 pandas==2.3.3
 scikit-learn==1.7.1
 joblib==1.5.2
-matplotlib==3.7.2
-
-# Cheminformatics
 rdkit-pypi==2023.3.1b1
-
-# Streamlit dependency
-rich==13.3.4
-markdown-it-py==4.0.0
-mdurl==0.1.2
-pygments==2.19.2
+matplotlib==3.7.2
